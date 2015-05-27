@@ -4,6 +4,7 @@
 
 var R = Color.R, G = Color.G, B = Color.B;
 var min = Math.min, max = Math.max, abs = Math.abs;
+var ceil = Math.ceil, floor = Math.floor;
 
 var Blend = function (fn) {
 	this.colorBlend = fn;
@@ -41,7 +42,10 @@ inherits(ChannelBlend, Blend);
 
 ChannelBlend.prototype.channelBlendAlpha = function (a, b, o) {
 	var fn = this.channelBlend;
-	return o * fn(a) + (1 - o) * fn(b);
+	var result;
+	a = fn(a, b);
+	result = o * a + (1 - o) * b;
+	return (a > b) ? floor(result) : ceil(result);
 };
 
 ChannelBlend.prototype.colorBlendAlpha = function (a, b, o) {
