@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<title>Grid</title>
+
+<script src="../../color/color.js"></script>
+<script src="../color.blend.js"></script>
+
+<script>
+var colors = [
+	0xff0000,
+	0xff9900,
+	0xccff00,
+	0x33ff00,
+	0x00ff66,
+	0x00ffff,
+	0x0066ff,
+	0x3300ff,
+	0xcc00ff,
+	0xff0099
+];
+
+var buildGrid = function (mode) {
+	var size = colors.length;
+	var contents = document.createDocumentFragment();
+	var table = document.createElement('table');
+	var header = document.createElement('h2');
+	var row, cell;
+	var x, y;
+	var blended, hex;
+	header.appendChild(document.createTextNode(mode));
+	mode = Color.Blend[mode];
+	for (y = 0; y < size; y++) {
+		row = document.createElement('tr');
+		for (x = 0; x < size; x++) {
+			blended = mode.blend(colors[y], colors[x], 0.5);
+			hex = Color.formatHexString(blended);
+			cell = document.createElement('td');
+			cell.style.backgroundColor = hex;
+			cell.textContent = hex;
+			row.appendChild(cell);
+		}
+		table.appendChild(row);
+	}
+	contents.appendChild(header);
+	contents.appendChild(table);
+	return contents;
+};
+
+document.addEventListener('DOMContentLoaded', function () {
+	for (var mode in Color.Blend.modes) {
+		document.body.appendChild(buildGrid(mode));
+	}
+});
+</script>
+
+<style>
+table {
+	border-collapse: collapse;
+	margin: 50px;
+}
+td {
+	width: 60px;
+	height: 60px;
+	text-align: center;
+	line-height: 60px;
+	font: 12px monospace;
+}
+</style>
