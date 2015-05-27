@@ -102,16 +102,87 @@ modes.negation = Blend.defineChannelBlendMode(function (a, b) {
 });
 
 modes.screen = Blend.defineChannelBlendMode(function (a, b) {
-	return 0xff - (((0xff - A) * (0xff - B)) >> 8);
+	return 0xff - (((0xff - a) * (0xff - b)) >> 8);
+});
+
+modes.exclusion = Blend.defineChannelBlendMode(function (a, b) {
+	return a + b - 2 * a * b / 0xff;
+});
+
+modes.overlay = Blend.defineChannelBlendMode(function (a, b) {
+	return (b < 0x80) ? (2 * a * b / 0xff) : (0xff - 2 * (0xff - a) * (0xff - b) / 0xff);
+});
+
+modes.softLight = Blend.defineChannelBlendMode(function (a, b) {
+	if (b < 0x80) {
+		return (2 * ((a >> 1) + 0x40)) * (b / 0xff);
+	}
+	return 0xff - (2 * (0xff - ((a >> 1) + 0x40)) * (0xff - b) / 0xff);
+});
+
+modes.hardLight = Blend.defineChannelBlendMode(function (a, b) {
+	return modes.overlay.channelBlend(b, a);
+});
+
+modes.colorDodge = Blend.defineChannelBlendMode(function (a, b) {
+	return (b === 0xff) ? b : min(0xff, ((a << 0x10) / (0xff - b)));
+});
+
+modes.colorBurn = Blend.defineChannelBlendMode(function (a, b) {
+	return (b === 0) ? b : max(0, 0xff - ((0xff - a) << 0x10) / b);
+});
+
+modes.linearDodge = Blend.defineChannelBlendMode(function (a, b) {
+	return modes.add.channelBlend(a, b);
+});
+
+modes.linearBurn = Blend.defineChannelBlendMode(function (a, b) {
+	return modes.subtract.channelBlend(a, b);
+});
+
+modes.linearLight = Blend.defineChannelBlendMode(function (a, b) {
+	if (b < 0x80) {
+		return modes.linearBurn.channelBlend(a, 2 * b);
+	}
+	return modes.linearDodge.channelBlend(a, 2 * (b - 0x80));
+});
+
+modes.vividLight = Blend.defineChannelBlendMode(function (a, b) {
+	if (b < 0x80) {
+		return modes.colorBurn.channelBlend(a, 2 * b);
+	}
+	return modes.colorDodge.channelBlend(a, 2 * (b - 0x80));
+});
+
+modes.pinLight = Blend.defineChannelBlendMode(function (a, b) {
+	if (b < 0x80) {
+		return modes.darken.channelBlend(a, 2 * b);
+	}
+	return modes.lighten.channelBlend(a, 2 * (b - 0x80));
+});
+
+modes.hardMix = Blend.defineChannelBlendMode(function (a, b) {
+	return (modes.vividLight.channelBlend(a, b) < 0x80) ? 0 : 0xff;
+});
+
+modes.reflect = Blend.defineChannelBlendMode(function (a, b) {
+	return (b === 0xff) ? b : min(0xff, a * a / (0xff - b));
+});
+
+modes.glow = Blend.defineChannelBlendMode(function (a, b) {
+	return modes.reflect.channelBlend(b, a);
+});
+
+modes.phoenix = Blend.defineChannelBlendMode(function (a, b) {
+	return min(a, b) - max(a, b) + 0xff;
 });
 
 // ...
 
 // merge with base class
+Blend.modes = modes;
 for (var name in modes) {
-	if (Object.prototype.hasOwnProperty(modes, name)) {
-		Blend[name] = modes[name];
-	}
+	Blend[name] = modes[name];
 }
 
 Color.Blend = Blend;
